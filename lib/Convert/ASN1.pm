@@ -1,7 +1,7 @@
 
 package Convert::ASN1;
 
-# $Id: ASN1.pm,v 1.9 2001/04/20 06:26:37 gbarr Exp $
+# $Id: ASN1.pm,v 1.11 2001/06/11 13:13:33 gbarr Exp $
 
 use 5.004;
 use strict;
@@ -10,7 +10,7 @@ use Exporter;
 
 BEGIN {
   @ISA = qw(Exporter);
-  $VERSION = '0.10';
+  $VERSION = '0.11';
 
   %EXPORT_TAGS = (
     io    => [qw(asn_recv asn_send asn_read asn_write asn_get asn_ready)],
@@ -285,7 +285,9 @@ sub os2ip {
     my $result = $biclass->new(0);
     my $neg = ord($os) >= 0x80
       and $os ^= chr(255) x length($os);
-    $result = ($result * $base) + $_ for unpack("C*",$os);
+    for (unpack("C*",$os)) {
+      $result = ($result * $base) + $_;
+    }
     return $neg ? ($result + 1) * -1 : $result;
 }
 
