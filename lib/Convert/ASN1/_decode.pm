@@ -1,7 +1,7 @@
 
 package Convert::ASN1;
 
-# $Id: //depot/asn/lib/Convert/ASN1/_decode.pm#5 $
+# $Id: _decode.pm,v 1.5 2001/04/19 22:52:10 gbarr Exp $
 
 BEGIN {
   local $SIG{__DIE__};
@@ -161,8 +161,12 @@ sub _dec_integer {
 
   my $buf = substr($_[4],$_[5],$_[6]);
   my $tmp = ord($buf) & 0x80 ? chr(255) : chr(0);
-  # N unpacks an unsigned value
-  $_[3] = unpack("l",pack("l",unpack("N", $tmp x (4-$_[6]) . $buf)));
+  if ($_[6] > 4) {
+      $_[3] = os2ip($tmp x (4-$_[6]) . $buf, $_[0]->{decode_bigint} || 'Math::BigInt');
+  } else {
+      # N unpacks an unsigned value
+      $_[3] = unpack("l",pack("l",unpack("N", $tmp x (4-$_[6]) . $buf)));
+  }
   1;
 }
 
@@ -318,7 +322,7 @@ sub _dec_time {
   if ($bits[7] ne 'Z') {
     $offset = $bits[9] * 3600 + $bits[10] * 60;
     $offset = -$offset if $bits[8] eq '-';
-    $time += $offset;
+    $time -= $offset;
   }
   $_[3] = $mode ? [$time,$offset] : $time;
 }

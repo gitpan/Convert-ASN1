@@ -5,7 +5,7 @@
 
 package Convert::ASN1::parser;
 
-;# $Id: //depot/asn/lib/Convert/ASN1/parser.pm#6 $
+;# $Id: parser.pm,v 1.3 2001/02/05 22:31:41 gbarr Exp $
 
 use strict;
 use Convert::ASN1 qw(:all);

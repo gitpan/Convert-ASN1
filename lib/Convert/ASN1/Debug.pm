@@ -1,7 +1,7 @@
 
 package Convert::ASN1;
 
-# $Id: //depot/asn/lib/Convert/ASN1/Debug.pm#6 $
+# $Id: Debug.pm,v 1.4 2000/08/03 17:07:02 gbarr Exp $
 
 ##
 ## just for debug :-)

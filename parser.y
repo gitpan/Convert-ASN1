@@ -20,7 +20,7 @@
 %{
 package Convert::ASN1::parser;
 
-;# $Id: //depot/asn/parser.y#6 $
+;# $Id: parser.y,v 1.2 2000/05/22 11:07:35 gbarr Exp $
 
 use strict;
 use Convert::ASN1 qw(:all);

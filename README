@@ -28,4 +28,4 @@ that you have downloaded
   make test
   make install
 
-$Id: //depot/asn/README#2 $
+$Id: README,v 1.1.1.1 2000/05/03 12:24:43 gbarr Exp $
