@@ -1,7 +1,7 @@
 
 package Convert::ASN1;
 
-# $Id: //depot/asn/lib/Convert/ASN1/IO.pm#10 $
+# $Id: //depot/asn/lib/Convert/ASN1/IO.pm#11 $
 
 use strict;
 use Socket;
@@ -221,8 +221,11 @@ sub asn_get { # $fh
     $need = $tb + $lb + $len;
   }
   continue {
-    return substr($href->{'asn_buffer'},0,$need,'')
-      if $need && $need <= length $href->{'asn_buffer'};
+    if ($need && $need <= length $href->{'asn_buffer'}) {
+      my $ret = substr($href->{'asn_buffer'},0,$need);
+      substr($href->{'asn_buffer'},0,$need) = '';
+      return $ret;
+    }
 
     my $get = $need > 1024 ? $need : 1024;
 

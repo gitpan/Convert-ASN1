@@ -1,7 +1,7 @@
 
 package Convert::ASN1;
 
-# $Id: //depot/asn/lib/Convert/ASN1/_encode.pm#3 $
+# $Id: //depot/asn/lib/Convert/ASN1/_encode.pm#4 $
 
 BEGIN {
   local $SIG{__DIE__};
@@ -191,7 +191,7 @@ sub _enc_real {
     ($mantissa, $int) = POSIX::modf($mantissa * (1<<16));
     $eMant .= pack("n", $int);
   }
-  $eMant =~ s/\x00+\z//; # remove trailing zero bytes
+  $eMant =~ s/\x00+$//s; # remove trailing zero bytes
   $exponent -= 8 * length $eMant;
 
   _enc_integer(undef, undef, undef, $exponent, $eExp);

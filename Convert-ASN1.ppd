@@ -1,4 +1,4 @@
-<SOFTPKG NAME="Convert-ASN1" VERSION="0,05,0,0">
+<SOFTPKG NAME="Convert-ASN1" VERSION="0,06,0,0">
 	<TITLE>Convert-ASN1</TITLE>
 	<ABSTRACT>Convert between perl data structures and ASN.1 encoded packets</ABSTRACT>
 	<AUTHOR>Graham Barr &lt;gbarr@pobox.com&gt;</AUTHOR>

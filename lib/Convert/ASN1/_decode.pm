@@ -1,7 +1,7 @@
 
 package Convert::ASN1;
 
-# $Id: //depot/asn/lib/Convert/ASN1/_decode.pm#2 $
+# $Id: //depot/asn/lib/Convert/ASN1/_decode.pm#3 $
 
 BEGIN {
   local $SIG{__DIE__};
@@ -229,7 +229,9 @@ sub _dec_real {
     _dec_integer(undef, undef, undef, $exp, $_[4],$estart,$expLen);
 
     my $mant = 0.0;
-    $exp +=8, $mant = (($mant+$_) / 256) for (reverse unpack("C*",substr($_[4],$estart+$expLen)));
+    for (reverse unpack("C*",substr($_[4],$estart+$expLen))) {
+      $exp +=8, $mant = (($mant+$_) / 256) ;
+    }
 
     $mant *= 1 << (($first >> 2) & 0x3);
     $mant = - $mant if $first & 0x40;
