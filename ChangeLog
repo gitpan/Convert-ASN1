@@ -1,3 +1,15 @@
+2001-04-20 07:26  Graham Barr
+
+	* lib/Convert/ASN1.pm, lib/Convert/ASN1/_encode.pm, t/06bigint.t:
+
+	Fix some bigint encoding problems and add some tests
+	
+2001-04-20 00:00  Graham Barr
+
+	* Makefile.PL, lib/Convert/ASN1.pm:
+
+	Release 0.09
+	
 2001-04-19 23:52  Graham Barr
 
 	* lib/Convert/ASN1.pm, lib/Convert/ASN1.pod,
