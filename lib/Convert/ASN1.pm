@@ -1,7 +1,10 @@
+# Copyright (c) 2000-2002 Graham Barr <gbarr@pobox.com>. All rights reserved.
+# This program is free software; you can redistribute it and/or
+# modify it under the same terms as Perl itself.
 
 package Convert::ASN1;
 
-# $Id: ASN1.pm,v 1.15 2001/09/10 18:03:47 gbarr Exp $
+# $Id: ASN1.pm,v 1.20 2002/01/22 11:24:28 gbarr Exp $
 
 use 5.004;
 use strict;
@@ -10,7 +13,7 @@ use Exporter;
 
 BEGIN {
   @ISA = qw(Exporter);
-  $VERSION = '0.14';
+  $VERSION = '0.15';
 
   %EXPORT_TAGS = (
     io    => [qw(asn_recv asn_send asn_read asn_write asn_get asn_ready)],
@@ -20,7 +23,7 @@ BEGIN {
     const => [qw(ASN_BOOLEAN     ASN_INTEGER      ASN_BIT_STR      ASN_OCTET_STR
 		 ASN_NULL        ASN_OBJECT_ID    ASN_REAL         ASN_ENUMERATED
 		 ASN_SEQUENCE    ASN_SET          ASN_PRINT_STR    ASN_IA5_STR
-		 ASN_UTC_TIME    ASN_GENERAL_TIME
+		 ASN_UTC_TIME    ASN_GENERAL_TIME ASN_RELATIVE_OID
 		 ASN_UNIVERSAL   ASN_APPLICATION  ASN_CONTEXT      ASN_PRIVATE
 		 ASN_PRIMITIVE   ASN_CONSTRUCTOR  ASN_LONG_LEN     ASN_EXTENSION_ID ASN_BIT)],
 
@@ -36,7 +39,7 @@ BEGIN {
 
   @opName = qw(
     opUNKNOWN opBOOLEAN opINTEGER opBITSTR opSTRING opNULL opOBJID opREAL
-    opSEQUENCE opSET opUTIME opGTIME opUTF8 opANY opCHOICE
+    opSEQUENCE opSET opUTIME opGTIME opUTF8 opANY opCHOICE opROID
   );
 
   foreach my $l (\@opParts, \@opName) {
@@ -65,6 +68,7 @@ sub ASN_NULL 		() { 0x05 }
 sub ASN_OBJECT_ID 	() { 0x06 }
 sub ASN_REAL 		() { 0x09 }
 sub ASN_ENUMERATED	() { 0x0A }
+sub ASN_RELATIVE_OID	() { 0x0D }
 sub ASN_SEQUENCE 	() { 0x10 }
 sub ASN_SET 		() { 0x11 }
 sub ASN_PRINT_STR	() { 0x13 }
@@ -151,7 +155,7 @@ sub encode {
   my $stash = @_ == 1 ? shift : { @_ };
   my $buf = '';
   local $SIG{__DIE__};
-  eval { _encode($self->{options}, $self->{script}, $stash, $buf) }
+  eval { _encode($self->{options}, $self->{script}, $stash, [], $buf) }
     or do { $self->{error} = $@; undef }
 }
 
@@ -196,7 +200,7 @@ sub decode {
   my $stash = {};
 
   local $SIG{__DIE__};
-  eval { _decode($self->{options}, $self->{script}, $stash, 0, length $_[0], $_[0]); $stash }
+  eval { _decode($self->{options}, $self->{script}, $stash, 0, length $_[0], undef, [], $_[0]); $stash }
   or do {
     $self->{'error'} = $@;
     undef;

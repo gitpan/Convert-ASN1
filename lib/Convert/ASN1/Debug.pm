@@ -1,7 +1,10 @@
+# Copyright (c) 2000-2002 Graham Barr <gbarr@pobox.com>. All rights reserved.
+# This program is free software; you can redistribute it and/or
+# modify it under the same terms as Perl itself.
 
 package Convert::ASN1;
 
-# $Id: Debug.pm,v 1.5 2001/09/06 17:54:51 gbarr Exp $
+# $Id: Debug.pm,v 1.7 2002/01/22 11:24:28 gbarr Exp $
 
 ##
 ## just for debug :-)
@@ -44,6 +47,7 @@ my %type = (
     q(10	SEQUENCE
       01	BOOLEAN
       0A	ENUM
+      0D	RELATIVE-OID
       11	SET
       02	INTEGER
       03	BIT STRING
@@ -121,11 +125,12 @@ sub asn_dump {
         last;
       };
 
-#      /^OBJECT ID/ && do {
-#	Convert::BER::OBJECT_ID->unpack($ber,\$tmp);
-#	printf " = %s\n",$tmp;
-#        last;
-#      };
+      /^(?:(OBJECT ID)|(RELATIVE-OID))/ && do {
+	my @op; $op[opTYPE] = $1 ? opOBJID : opROID;
+	Convert::ASN1::_dec_object_id({},\@op,{},$tmp,$_[0],$pos,$len);
+	printf " = %s\n",$tmp;
+        last;
+      };
 
       /^NULL/ && do {
 	print "\n";

@@ -6,7 +6,7 @@
 
 use Convert::ASN1 qw(:all);
 
-print "1..154\n";
+print "1..146\n";
 
 BEGIN { require 't/funcs.pl' }
 
@@ -81,11 +81,7 @@ my %INTEGER = (
   pack("C*", 0x02, 0x03, 0x66, 0x77, 0x99),   0x667799,
   pack("C*", 0x02, 0x02, 0xFE, 0x37),	     -457,
   pack("C*", 0x02, 0x04, 0x40, 0x00, 0x00, 0x00),	     2**30,
-  pack("C*", 0x02, 0x05, 0x00, 0x80, 0x00, 0x00, 0x00),	     2**31,
-  pack("C*", 0x02, 0x05, 0x01, 0x00, 0x00, 0x00, 0x00),	     2**32,
   pack("C*", 0x02, 0x04, 0xC0, 0x00, 0x00, 0x00),	     -2**30,
-  pack("C*", 0x02, 0x04, 0x80, 0x00, 0x00, 0x00),	     -2**31,
-  pack("C*", 0x02, 0x05, 0xFF, 0x00, 0x00, 0x00, 0x00),	     -2**32,
 );
 
 while(($result,$val) = each %INTEGER) {
@@ -204,5 +200,24 @@ while(($result,$val) = each %REAL) {
   stest $test++, $result, $asn->encode( real => $val);
   btest $test++, $ret = $asn->decode($result);
   ntest $test++, $val, $ret->{'real'};
+}
+
+##
+## RELATIVE-OID
+##
+
+my %ROID = (
+  pack("C*", 0x0D, 0x05, 0x01, 0x02, 0x03, 0x04, 0x05), "1.2.3.4.5",
+  pack("C*", 0x0D, 0x04, 0x02, 0x05, 0x83, 0x49),       "2.5.457",  
+);
+
+
+while(($result,$val) = each %ROID) {
+  print "# RELATIVE-OID $val\n";
+
+  btest $test++, $asn->prepare('roid RELATIVE-OID');
+  stest $test++, $result, $asn->encode(roid => $val);
+  btest $test++, $ret = $asn->decode($result);
+  stest $test++, $val, $ret->{'roid'};
 }
 
