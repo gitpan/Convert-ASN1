@@ -1,7 +1,7 @@
 ChangeLog
-Convert-ASN1.ppd
 MANIFEST
 Makefile.PL
+OldChanges
 README
 examples/ldap
 examples/ldap-search

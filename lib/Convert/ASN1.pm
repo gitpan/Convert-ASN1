@@ -1,7 +1,7 @@
 
 package Convert::ASN1;
 
-# $Id: //depot/asn/lib/Convert/ASN1.pm#10 $
+# $Id: //depot/asn/lib/Convert/ASN1.pm#13 $
 
 use 5.004;
 use strict;
@@ -10,7 +10,7 @@ use Exporter;
 
 BEGIN {
   @ISA = qw(Exporter);
-  $VERSION = '0.07';
+  $VERSION = '0.08';
 
   %EXPORT_TAGS = (
     io    => [qw(asn_recv asn_send asn_read asn_write asn_get asn_ready)],
@@ -104,7 +104,7 @@ sub configure {
   for my $type (qw(encode decode)) {
     if (exists $opt{$type}) {
       while(my($what,$value) = each %{$opt{$type}}) {
-	$self->{options}{"${$type}_${what}"} = $value;
+	$self->{options}{"${type}_${what}"} = $value;
       }
     }
   }
@@ -213,7 +213,7 @@ sub asn_decode_length {
   my $len = ord substr($_[0],0,1);
 
   if($len & 0x80) {
-    $len &= 0x7f;
+    $len &= 0x7f or return (1,-1);
 
     return if $len >= length $_[0];
 

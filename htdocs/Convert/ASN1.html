@@ -1,403 +1,492 @@
 <HTML>
 <HEAD>
 <TITLE>Convert::ASN1 - ASN.1 Encode/Decode library</TITLE>
-<LINK REV="made" HREF="mailto:gbarr@chipper.localdomain">
+<LINK REV="made" HREF="mailto:feedback@suse.de">
 </HEAD>
 
 <BODY>
 
-<A NAME="__index__"></A>
 <!-- INDEX BEGIN -->
 <!--
 
 <UL>
 
-	<LI><A HREF="#name">NAME</A></LI>
-	<LI><A HREF="#synopsys">SYNOPSYS</A></LI>
-	<LI><A HREF="#description">DESCRIPTION</A></LI>
-	<LI><A HREF="#methods">METHODS</A></LI>
+	<LI><A HREF="#NAME">NAME</A>
+	<LI><A HREF="#SYNOPSYS">SYNOPSYS</A>
+	<LI><A HREF="#DESCRIPTION">DESCRIPTION</A>
+	<LI><A HREF="#METHODS">METHODS</A>
 	<UL>
 
-		<LI><A HREF="#new">new</A></LI>
-		<LI><A HREF="#error">error</A></LI>
-		<LI><A HREF="#configure ( options )">configure ( OPTIONS )</A></LI>
-		<LI><A HREF="#prepare ( asn )">prepare ( ASN )</A></LI>
-		<LI><A HREF="#find ( macro )">find ( MACRO )</A></LI>
-		<LI><A HREF="#encode ( variables )">encode ( VARIABLES )</A></LI>
-		<LI><A HREF="#decode ( pdu )">decode ( PDU )</A></LI>
+		<LI><A HREF="#new">new</A>
+		<LI><A HREF="#error">error</A>
+		<LI><A HREF="#configure_OPTIONS_">configure ( OPTIONS )</A>
+		<LI><A HREF="#prepare_ASN_">prepare ( ASN )</A>
+		<LI><A HREF="#find_MACRO_">find ( MACRO )</A>
+		<LI><A HREF="#encode_VARIABLES_">encode ( VARIABLES )</A>
+		<LI><A HREF="#decode_PDU_">decode ( PDU )</A>
 	</UL>
 
-	<LI><A HREF="#exports">EXPORTS</A></LI>
+	<LI><A HREF="#EXPORTS">EXPORTS</A>
 	<UL>
 
-		<LI><A HREF="#io functions">IO Functions</A></LI>
-		<LI><A HREF="#encode/decode functions">Encode/Decode Functions</A></LI>
-		<LI><A HREF="#constants">Constants</A></LI>
-		<LI><A HREF="#debug functions">Debug Functions</A></LI>
+		<LI><A HREF="#IO_Functions">IO Functions</A>
+		<LI><A HREF="#Encode_Decode_Functions">Encode/Decode Functions</A>
+		<LI><A HREF="#Constants">Constants</A>
+		<LI><A HREF="#Debug_Functions">Debug Functions</A>
 	</UL>
 
-	<LI><A HREF="#export tags">EXPORT TAGS</A></LI>
-	<LI><A HREF="#mapping asn.1 to perl">MAPPING ASN.1 TO PERL</A></LI>
+	<LI><A HREF="#EXPORT_TAGS">EXPORT TAGS</A>
+	<LI><A HREF="#MAPPING_ASN_1_TO_PERL">MAPPING ASN.1 TO PERL</A>
 	<UL>
 
-		<LI><A HREF="#exceptions">Exceptions</A></LI>
+		<LI><A HREF="#Exceptions">Exceptions</A>
 	</UL>
 
-	<LI><A HREF="#todo">TODO</A></LI>
-	<LI><A HREF="#author">AUTHOR</A></LI>
-	<LI><A HREF="#copyright">COPYRIGHT</A></LI>
+	<LI><A HREF="#TODO">TODO</A>
+	<LI><A HREF="#AUTHOR">AUTHOR</A>
+	<LI><A HREF="#COPYRIGHT">COPYRIGHT</A>
 </UL>
 -->
 <!-- INDEX END -->
 
 <P>
-<H1><A NAME="name">NAME</A></H1>
-<PRE>
-  Convert::ASN1 - ASN.1 Encode/Decode library</PRE>
+<H1><A NAME="NAME">NAME</A></H1>
+<P>
+<PRE>  Convert::ASN1 - ASN.1 Encode/Decode library
+</PRE>
 <P>
 <HR>
-<H1><A NAME="synopsys">SYNOPSYS</A></H1>
-<PRE>
-  use Convert::ASN1;</PRE>
-<PRE>
-  $asn = Convert::ASN1-&gt;new;
-  $asn-&gt;prepare(q&lt;</PRE>
-<PRE>
-    [APPLICATION 7] SEQUENCE {
+<H1><A NAME="SYNOPSYS">SYNOPSYS</A></H1>
+<P>
+<PRE>  use Convert::ASN1;
+</PRE>
+<P>
+<PRE>  $asn = Convert::ASN1-&gt;new;
+  $asn-&gt;prepare(q&lt;
+</PRE>
+<P>
+<PRE>    [APPLICATION 7] SEQUENCE {
       int INTEGER,
       str OCTET STRING
-    }</PRE>
-<PRE>
-  &gt;);</PRE>
-<PRE>
-  $pdu = $asn-&gt;encode( int =&gt; 7, str =&gt; &quot;string&quot;);</PRE>
-<PRE>
-  $out = $asn-&gt;decode($pdu);
-  print $out-&gt;{int},&quot; &quot;,$out-&gt;{str},&quot;\n&quot;;</PRE>
-<PRE>
-  use Convert::ASN1 qw(:io);</PRE>
-<PRE>
-  $peer   = asn_recv($sock,$buffer,0);
+    }
+</PRE>
+<P>
+<PRE>  &gt;);
+</PRE>
+<P>
+<PRE>  $pdu = $asn-&gt;encode( int =&gt; 7, str =&gt; &quot;string&quot;);
+</PRE>
+<P>
+<PRE>  $out = $asn-&gt;decode($pdu);
+  print $out-&gt;{int},&quot; &quot;,$out-&gt;{str},&quot;\n&quot;;
+</PRE>
+<P>
+<PRE>  use Convert::ASN1 qw(:io);
+</PRE>
+<P>
+<PRE>  $peer   = asn_recv($sock,$buffer,0);
   $nbytes = asn_read($fh, $buffer);
   $nbytes = asn_send($sock, $buffer, $peer);
   $nbytes = asn_send($sock, $buffer);
   $nbytes = asn_write($fh, $buffer);
   $buffer = asn_get($fh);
-  $yes    = asn_ready($fh)</PRE>
+  $yes    = asn_ready($fh)
+</PRE>
 <P>
 <HR>
-<H1><A NAME="description">DESCRIPTION</A></H1>
-<P>Convert::ASN1 encodes and decodes ASN.1 data structures using BER/DER
-rules.</P>
+<H1><A NAME="DESCRIPTION">DESCRIPTION</A></H1>
+<P>
+Convert::ASN1 encodes and decodes ASN.1 data structures using BER/DER
+rules.
+
 <P>
 <HR>
-<H1><A NAME="methods">METHODS</A></H1>
+<H1><A NAME="METHODS">METHODS</A></H1>
 <P>
+<HR>
 <H2><A NAME="new">new</A></H2>
-<P>Contructor, creates a new object.</P>
 <P>
-<H2><A NAME="error">error</A></H2>
-<P>Returns the last error.</P>
-<P>
-<H2><A NAME="configure ( options )">configure ( OPTIONS )</A></H2>
-<P>Configure options to control how Convert::ASN1 will perform various tasks.
-Options are passed as name-value pairs.</P>
-<DL>
-<DT><STRONG><A NAME="item_encode">encode</A></STRONG><BR>
-<DD>
-Reference to a hash which contains various encode options.
-<P></P>
-<DT><STRONG><A NAME="item_decode">decode</A></STRONG><BR>
-<DD>
-Reference to a hash which contains various decode options.
-<P></P>
-<DT><STRONG><A NAME="item_encoding">encoding</A></STRONG><BR>
-<DD>
-One of 'ber', 'der', 'per'. <EM>Currently not used</EM>
-<P></P></DL>
-<P>Encode options</P>
-<DL>
-<DT><STRONG><A NAME="item_real">real</A></STRONG><BR>
-<DD>
-Which encoding to use for real's. One of 'binary', 'nr1', 'nr2', 'nr3'
-<P></P>
-<DT><STRONG><A NAME="item_timezone">timezone</A></STRONG><BR>
-<DD>
-By default UTCTime and GeneralizedTime will be encoded using the local time offset
-from UTC. This will over-ride that. It is an offset from UTC in seconds. Setting this
-to zero will make all Time values be passed as UTC. This option can be overriden
-by passing a reference to a list of two values as the time value. The list
-should contain the time value and the offset from UTC in seconds.
-<P></P></DL>
-<P>Decode options</P>
-<DL>
-<DT><STRONG>timezone</STRONG><BR>
-<DD>
-By default UTCTime and GeneralizedTime will return just a time value. If this option
-is set to true then these type will return a reference to an array of two values. The
-first value is the time value. The second value is the offset from UTC in seconds.
-<P></P></DL>
-<P>
-<H2><A NAME="prepare ( asn )">prepare ( ASN )</A></H2>
-<P>Compile the given ASN.1 descripton. The syntax used is very close to ASN.1, but has
-a few differnces. If the ASN decribes only one macro then encode/decode can be
-called on this object. If ASN describes more than one ASN.1 macro then <CODE>find</CODE>
-must be called.</P>
-<P>
-<H2><A NAME="find ( macro )">find ( MACRO )</A></H2>
-<P>Find a macro froma prepared ASN.1 description. Returns an object which can
-be used for encode/decode.</P>
-<P>
-<H2><A NAME="encode ( variables )">encode ( VARIABLES )</A></H2>
-<P>Encode a PDU. Top-level variable are passed as name-value pairs, or as a reference
-to a hash containing them. Returns the encoded PDU, or undef on error.</P>
-<P>
-<H2><A NAME="decode ( pdu )">decode ( PDU )</A></H2>
-<P>Decode the PDU, returns a reference to a hash containg the values for the PDU. Returns
-undef if there was an error.</P>
+Contructor, creates a new object.
+
 <P>
 <HR>
-<H1><A NAME="exports">EXPORTS</A></H1>
-<P>As well as providing an object interface for encoding/decoding PDUs Convert::ASN1
-also provides the follow functions.</P>
+<H2><A NAME="error">error</A></H2>
 <P>
-<H2><A NAME="io functions">IO Functions</A></H2>
+Returns the last error.
+
+<P>
+<HR>
+<H2><A NAME="configure_OPTIONS_">configure ( OPTIONS )</A></H2>
+<P>
+Configure options to control how Convert::ASN1 will perform various tasks.
+Options are passed as name-value pairs.
+
 <DL>
-<DT><STRONG><A NAME="item_asn_recv_SOCK%2C_BUFFER%2C_FLAGS">asn_recv SOCK, BUFFER, FLAGS</A></STRONG><BR>
-<DD>
-Will read a single element from the socket SOCK into BUFFER.  FLAGS may
-be MSG_PEEK as exported by <CODE>Socket</CODE>. Returns the address of the sender,
-or undef if there was an error. Some systems do not support the return
-of the peer address when the socket is a connected socket, in these
-cases the empty string will be returned. This is the same behaviour
-as the <CODE>recv</CODE> function in perl itself.
-<P>It is reccomended that if the socket is of type SOCK_DGRAM then <CODE>recv</CODE>
-be called directly instead of calling <CODE>asn_recv</CODE>.</P>
-<P></P>
-<DT><STRONG><A NAME="item_asn_read_FH%2C_BUFFER%2C_OFFSET">asn_read FH, BUFFER, OFFSET</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_asn_read_FH%2C_BUFFER">asn_read FH, BUFFER</A></STRONG><BR>
-<DD>
+<DT><STRONG><A NAME="item_encode">encode</A></STRONG><DD>
+<P>
+Reference to a hash which contains various encode options.
+
+<DT><STRONG><A NAME="item_decode">decode</A></STRONG><DD>
+<P>
+Reference to a hash which contains various decode options.
+
+<DT><STRONG><A NAME="item_encoding">encoding</A></STRONG><DD>
+<P>
+One of 'ber', 'der', 'per'. <EM>Currently not used</EM>
+
+
+
+</DL>
+<P>
+Encode options
+
+<DL>
+<DT><STRONG><A NAME="item_real">real</A></STRONG><DD>
+<P>
+Which encoding to use for real's. One of 'binary', 'nr1', 'nr2', 'nr3'
+
+<DT><STRONG><A NAME="item_time">time</A></STRONG><DD>
+<P>
+This controls how UTCTime and GeneralizedTime elements are encoded. The
+default is <A HREF="#item_withzone">withzone</A>.
+
+<DL>
+<DT><STRONG><A NAME="item_utctime">utctime</A></STRONG><DD>
+<P>
+The value passed will be encoded without a zone, ie a UTC value.
+
+<DT><STRONG><A NAME="item_withzone">withzone</A></STRONG><DD>
+<P>
+The value will be encoded with a zone. By default it will be encoded using
+the local time offset. The offset may be set using the <A HREF="#item_timezone">timezone</A>
+configure option.
+
+<DT><STRONG><A NAME="item_raw">raw</A></STRONG><DD>
+<P>
+The value passed should already be in the correct format and will be copied
+into the PDU as-is.
+
+</DL>
+<DT><STRONG><A NAME="item_timezone">timezone</A></STRONG><DD>
+<P>
+By default UTCTime and GeneralizedTime will be encoded using the local time
+offset from UTC. This will over-ride that. It is an offset from UTC in
+seconds. This option can be overriden by passing a reference to a list of
+two values as the time value. The list should contain the time value and
+the offset from UTC in seconds.
+
+</DL>
+<P>
+Decode options
+
+<DL>
+<DT><STRONG>time</STRONG><DD>
+<P>
+This controls how a UTCTime or a GeneralizedTime element will be decoded.
+The default is <A HREF="#item_utctime">utctime</A>.
+
+<DL>
+<DT><STRONG>utctime</STRONG><DD>
+<P>
+The value returned will be a time value as returned by the <A HREF="#item_time">time</A> function.
+
+<DT><STRONG>withzone</STRONG><DD>
+<P>
+The value returned will be a reference to an array of two values. The first
+is the same as with <A HREF="#item_utctime">utctime</A>, the second is the timezone offset, in seconds, that was used in the
+encoding.
+
+<DT><STRONG>raw</STRONG><DD>
+<P>
+The value returned will be the raw encoding as extracted from the PDU.
+
+</DL>
+</DL>
+<P>
+<HR>
+<H2><A NAME="prepare_ASN_">prepare ( ASN )</A></H2>
+<P>
+Compile the given ASN.1 descripton. The syntax used is very close to ASN.1,
+but has a few differnces. If the ASN decribes only one macro then
+encode/decode can be called on this object. If ASN describes more than one
+ASN.1 macro then <CODE>find</CODE>
+must be called.
+
+<P>
+<HR>
+<H2><A NAME="find_MACRO_">find ( MACRO )</A></H2>
+<P>
+Find a macro froma prepared ASN.1 description. Returns an object which can
+be used for encode/decode.
+
+<P>
+<HR>
+<H2><A NAME="encode_VARIABLES_">encode ( VARIABLES )</A></H2>
+<P>
+Encode a PDU. Top-level variable are passed as name-value pairs, or as a
+reference to a hash containing them. Returns the encoded PDU, or undef on
+error.
+
+<P>
+<HR>
+<H2><A NAME="decode_PDU_">decode ( PDU )</A></H2>
+<P>
+Decode the PDU, returns a reference to a hash containg the values for the
+PDU. Returns undef if there was an error.
+
+<P>
+<HR>
+<H1><A NAME="EXPORTS">EXPORTS</A></H1>
+<P>
+As well as providing an object interface for encoding/decoding PDUs
+Convert::ASN1 also provides the follow functions.
+
+<P>
+<HR>
+<H2><A NAME="IO_Functions">IO Functions</A></H2>
+<DL>
+<DT><STRONG><A NAME="item_asn_recv">asn_recv SOCK, BUFFER, FLAGS</A></STRONG><DD>
+<P>
+Will read a single element from the socket SOCK into BUFFER. FLAGS may be
+MSG_PEEK as exported by <CODE>Socket</CODE>. Returns the address of the sender, or undef if there was an error. Some
+systems do not support the return of the peer address when the socket is a
+connected socket, in these cases the empty string will be returned. This is
+the same behaviour as the <CODE>recv</CODE> function in perl itself.
+
+<P>
+It is reccomended that if the socket is of type SOCK_DGRAM then <CODE>recv</CODE>
+be called directly instead of calling <A HREF="#item_asn_recv">asn_recv</A>.
+
+<DT><STRONG><A NAME="item_asn_read">asn_read FH, BUFFER, OFFSET</A></STRONG><DD>
+<DT><STRONG>asn_read FH, BUFFER</STRONG><DD>
+<P>
 Will read a single element from the filehandle FH into BUFFER. Returns the
 number of bytes read if a complete element was read, -1 if an incomplete
 element was read or undef if there was an error. If OFFSET is specified
-then it is assumed that BUFFER already contains an incomplete element
-and new data will be appended starting at OFFSET.
-<P>If FH is a socket the asn_recv is used to read the element, so the same
-restiction applies if FH is a socket of type SOCK_DGRAM.</P>
-<P></P>
-<DT><STRONG><A NAME="item_asn_send_SOCK%2C_BUFFER%2C_FLAGS%2C_TO">asn_send SOCK, BUFFER, FLAGS, TO</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_asn_send_SOCK%2C_BUFFER%2C_FLAGS">asn_send SOCK, BUFFER, FLAGS</A></STRONG><BR>
-<DD>
+then it is assumed that BUFFER already contains an incomplete element and
+new data will be appended starting at OFFSET.
+
+<P>
+If FH is a socket the asn_recv is used to read the element, so the same
+restiction applies if FH is a socket of type SOCK_DGRAM.
+
+<DT><STRONG><A NAME="item_asn_send">asn_send SOCK, BUFFER, FLAGS, TO</A></STRONG><DD>
+<DT><STRONG>asn_send SOCK, BUFFER, FLAGS</STRONG><DD>
+<P>
 Identical to calling <CODE>send</CODE>, see <EM>perlfunc</EM>
-<P></P>
-<DT><STRONG><A NAME="item_asn_write_FH%2C_BUFFER">asn_write FH, BUFFER</A></STRONG><BR>
-<DD>
+
+
+
+<DT><STRONG><A NAME="item_asn_write">asn_write FH, BUFFER</A></STRONG><DD>
+<P>
 Identical to calling <CODE>syswrite</CODE> with 2 arguments, see <EM>perlfunc</EM>
-<P></P>
-<DT><STRONG><A NAME="item_asn_get_FH">asn_get FH</A></STRONG><BR>
-<DD>
-<CODE>asn_get</CODE> provides buffered IO. Because it needs a buffer FH must be a GLOB
-or a reference to a GLOB. <CODE>asn_get</CODE> will use two entries in the hash element
-of the GLOB to use as it's buffer
-<PRE>
-  asn_buffer - input buffer
-  asn_need   - number of bytes needed for the next element, if known</PRE>
-<P>Returns an element or undef if there was an error.</P>
-<P></P>
-<DT><STRONG><A NAME="item_asn_ready_FH">asn_ready FH</A></STRONG><BR>
-<DD>
-<CODE>asn_ready</CODE> works with <CODE>asn_get</CODE>. It will return true if <CODE>asn_get</CODE> has already
-read enough data into the buffer to return a complete element.
-<P></P></DL>
+
+
+
+<DT><STRONG><A NAME="item_asn_get">asn_get FH</A></STRONG><DD>
 <P>
-<H2><A NAME="encode/decode functions">Encode/Decode Functions</A></H2>
-<DL>
-<DT><STRONG><A NAME="item_asn_tag">asn_tag</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_asn_decode_tag">asn_decode_tag</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_asn_encode_tag">asn_encode_tag</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_asn_decode_length">asn_decode_length</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_asn_encode_length">asn_encode_length</A></STRONG><BR>
-<DD>
-</DL>
+<A HREF="#item_asn_get">asn_get</A> provides buffered IO. Because it needs a buffer FH must be a GLOB or a
+reference to a GLOB. <A HREF="#item_asn_get">asn_get</A> will use two entries in the hash element of the GLOB to use as it's buffer
+
 <P>
-<H2><A NAME="constants">Constants</A></H2>
-<DL>
-<DT><STRONG><A NAME="item_ASN_BIT_STR">ASN_BIT_STR</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_BOOLEAN">ASN_BOOLEAN</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_ENUMERATED">ASN_ENUMERATED</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_GENERAL_TIME">ASN_GENERAL_TIME</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_IA5_STR">ASN_IA5_STR</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_INTEGER">ASN_INTEGER</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_NULL">ASN_NULL</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_OBJECT_ID">ASN_OBJECT_ID</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_OCTET_STR">ASN_OCTET_STR</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_PRINT_STR">ASN_PRINT_STR</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_REAL">ASN_REAL</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_SEQUENCE">ASN_SEQUENCE</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_SET">ASN_SET</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_UTC_TIME">ASN_UTC_TIME</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_APPLICATION">ASN_APPLICATION</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_CONTEXT">ASN_CONTEXT</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_PRIVATE">ASN_PRIVATE</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_UNIVERSAL">ASN_UNIVERSAL</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_PRIMITIVE">ASN_PRIMITIVE</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_CONSTRUCTOR">ASN_CONSTRUCTOR</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_LONG_LEN">ASN_LONG_LEN</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_EXTENSION_ID">ASN_EXTENSION_ID</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_ASN_BIT">ASN_BIT</A></STRONG><BR>
-<DD>
-</DL>
+<PRE>  asn_buffer - input buffer
+  asn_need   - number of bytes needed for the next element, if known
+</PRE>
 <P>
-<H2><A NAME="debug functions">Debug Functions</A></H2>
-<DL>
-<DT><STRONG><A NAME="item_asn_dump">asn_dump</A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_asn_hexdump">asn_hexdump</A></STRONG><BR>
-<DD>
+Returns an element or undef if there was an error.
+
+<DT><STRONG><A NAME="item_asn_ready">asn_ready FH</A></STRONG><DD>
+<P>
+<A HREF="#item_asn_ready">asn_ready</A> works with <A HREF="#item_asn_get">asn_get</A>. It will return true if <A HREF="#item_asn_get">asn_get</A> has already read enough data into the buffer to return a complete element.
+
 </DL>
 <P>
 <HR>
-<H1><A NAME="export tags">EXPORT TAGS</A></H1>
+<H2><A NAME="Encode_Decode_Functions">Encode/Decode Functions</A></H2>
 <DL>
-<DT><STRONG><A NAME="item_%3Aall">:all</A></STRONG><BR>
-<DD>
+<DT><STRONG><A NAME="item_asn_tag">asn_tag</A></STRONG><DD>
+<DT><STRONG><A NAME="item_asn_decode_tag">asn_decode_tag</A></STRONG><DD>
+<DT><STRONG><A NAME="item_asn_encode_tag">asn_encode_tag</A></STRONG><DD>
+<DT><STRONG><A NAME="item_asn_decode_length">asn_decode_length</A></STRONG><DD>
+<DT><STRONG><A NAME="item_asn_encode_length">asn_encode_length</A></STRONG><DD>
+</DL>
+<P>
+<HR>
+<H2><A NAME="Constants">Constants</A></H2>
+<DL>
+<DT><STRONG><A NAME="item_ASN_BIT_STR">ASN_BIT_STR</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_BOOLEAN">ASN_BOOLEAN</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_ENUMERATED">ASN_ENUMERATED</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_GENERAL_TIME">ASN_GENERAL_TIME</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_IA5_STR">ASN_IA5_STR</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_INTEGER">ASN_INTEGER</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_NULL">ASN_NULL</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_OBJECT_ID">ASN_OBJECT_ID</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_OCTET_STR">ASN_OCTET_STR</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_PRINT_STR">ASN_PRINT_STR</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_REAL">ASN_REAL</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_SEQUENCE">ASN_SEQUENCE</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_SET">ASN_SET</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_UTC_TIME">ASN_UTC_TIME</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_APPLICATION">ASN_APPLICATION</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_CONTEXT">ASN_CONTEXT</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_PRIVATE">ASN_PRIVATE</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_UNIVERSAL">ASN_UNIVERSAL</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_PRIMITIVE">ASN_PRIMITIVE</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_CONSTRUCTOR">ASN_CONSTRUCTOR</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_LONG_LEN">ASN_LONG_LEN</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_EXTENSION_ID">ASN_EXTENSION_ID</A></STRONG><DD>
+<DT><STRONG><A NAME="item_ASN_BIT">ASN_BIT</A></STRONG><DD>
+</DL>
+<P>
+<HR>
+<H2><A NAME="Debug_Functions">Debug Functions</A></H2>
+<DL>
+<DT><STRONG><A NAME="item_asn_dump">asn_dump</A></STRONG><DD>
+<DT><STRONG><A NAME="item_asn_hexdump">asn_hexdump</A></STRONG><DD>
+</DL>
+<P>
+<HR>
+<H1><A NAME="EXPORT_TAGS">EXPORT TAGS</A></H1>
+<DL>
+<DT><STRONG><A NAME="item__all">:all</A></STRONG><DD>
+<P>
 All exported functions
-<P></P>
-<DT><STRONG><A NAME="item_%3Aconst">:const</A></STRONG><BR>
-<DD>
-ASN_BOOLEAN,     ASN_INTEGER,      ASN_BIT_STR,      ASN_OCTET_STR,
-ASN_NULL,        ASN_OBJECT_ID,    ASN_REAL,         ASN_ENUMERATED,
-ASN_SEQUENCE,    ASN_SET,          ASN_PRINT_STR,    ASN_IA5_STR,
-ASN_UTC_TIME,    ASN_GENERAL_TIME,
-ASN_UNIVERSAL,   ASN_APPLICATION,  ASN_CONTEXT,      ASN_PRIVATE,
-ASN_PRIMITIVE,   ASN_CONSTRUCTOR,  ASN_LONG_LEN,     ASN_EXTENSION_ID, ASN_BIT
-<P></P>
-<DT><STRONG><A NAME="item_%3Adebug">:debug</A></STRONG><BR>
-<DD>
+
+<DT><STRONG><A NAME="item__const">:const</A></STRONG><DD>
+<P>
+ASN_BOOLEAN, ASN_INTEGER, ASN_BIT_STR, ASN_OCTET_STR, ASN_NULL,
+ASN_OBJECT_ID, ASN_REAL, ASN_ENUMERATED, ASN_SEQUENCE, ASN_SET,
+ASN_PRINT_STR, ASN_IA5_STR, ASN_UTC_TIME, ASN_GENERAL_TIME, ASN_UNIVERSAL,
+ASN_APPLICATION, ASN_CONTEXT, ASN_PRIVATE, ASN_PRIMITIVE, ASN_CONSTRUCTOR,
+ASN_LONG_LEN, ASN_EXTENSION_ID, ASN_BIT
+
+<DT><STRONG><A NAME="item__debug">:debug</A></STRONG><DD>
+<P>
 asn_dump, asn_dumphex
-<P></P>
-<DT><STRONG><A NAME="item_%3Aio">:io</A></STRONG><BR>
-<DD>
+
+<DT><STRONG><A NAME="item__io">:io</A></STRONG><DD>
+<P>
 asn_recv, asn_send, asn_read, asn_write, asn_get, asn_ready
-<P></P>
-<DT><STRONG><A NAME="item_%3Atag">:tag</A></STRONG><BR>
-<DD>
-asn_tag, asn_decode_tag, asn_encode_tag, asn_decode_length, asn_encode_length
-<P></P></DL>
+
+<DT><STRONG><A NAME="item__tag">:tag</A></STRONG><DD>
+<P>
+asn_tag, asn_decode_tag, asn_encode_tag, asn_decode_length,
+asn_encode_length
+
+</DL>
 <P>
 <HR>
-<H1><A NAME="mapping asn.1 to perl">MAPPING ASN.1 TO PERL</A></H1>
-<P>Every element in the ASN.1 definition has a name, in perl a hash is used
-with these names as an index and the element value as the hash value.</P>
-<PRE>
-  # ASN.1
+<H1><A NAME="MAPPING_ASN_1_TO_PERL">MAPPING ASN.1 TO PERL</A></H1>
+<P>
+Every element in the ASN.1 definition has a name, in perl a hash is used
+with these names as an index and the element value as the hash value.
+
+<P>
+<PRE>  # ASN.1
   int INTEGER,
-  str OCTET STRING</PRE>
-<PRE>
-  # Perl
-  { int =&gt; 5, str =&gt; &quot;text&quot; }</PRE>
-<P>In the case of a SEQUENCE, SET or CHOICE then the value in the namespace will
-be a hash reference which will be the namespce for the elements with
-that element.</P>
-<PRE>
-  # ASN.1
+  str OCTET STRING
+</PRE>
+<P>
+<PRE>  # Perl
+  { int =&gt; 5, str =&gt; &quot;text&quot; }
+</PRE>
+<P>
+In the case of a SEQUENCE, SET or CHOICE then the value in the namespace
+will be a hash reference which will be the namespce for the elements with
+that element.
+
+<P>
+<PRE>  # ASN.1
   int INTEGER,
   seq SEQUENCE {
     str OCTET STRING,
     bool BOOLEAN
-  }</PRE>
-<PRE>
-  # Perl
-  { int =&gt; 5, seq =&gt; { str =&gt; &quot;text&quot;, bool =&gt; 1}}</PRE>
-<P>If the element is a SEQUENCE OF, or SET OF, then the value in the namespace
-will be an array reference. The elements in the array will be of
-the type expected by the type following the OF. For example
-with ``SEQUENCE OF STRING'' the array would contain strings. With
-``SEQUENCE OF SEQUENCE { ... }'' the array will contain hash references
-which will be used as namespaces</P>
-<PRE>
-  # ASN.1
+  }
+</PRE>
+<P>
+<PRE>  # Perl
+  { int =&gt; 5, seq =&gt; { str =&gt; &quot;text&quot;, bool =&gt; 1}}
+</PRE>
+<P>
+If the element is a SEQUENCE OF, or SET OF, then the value in the namespace
+will be an array reference. The elements in the array will be of the type
+expected by the type following the OF. For example with ``SEQUENCE OF
+STRING'' the array would contain strings. With ``SEQUENCE OF SEQUENCE { ...
+}'' the array will contain hash references which will be used as namespaces
+
+<P>
+<PRE>  # ASN.1
   int INTEGER,
-  str SEQUENCE OF OCTET STRING</PRE>
-<PRE>
-  # Perl
-  { int =&gt; 5, str =&gt; [ &quot;text1&quot;, &quot;text2&quot;]}</PRE>
-<PRE>
-  # ASN.1
+  str SEQUENCE OF OCTET STRING
+</PRE>
+<P>
+<PRE>  # Perl
+  { int =&gt; 5, str =&gt; [ &quot;text1&quot;, &quot;text2&quot;]}
+</PRE>
+<P>
+<PRE>  # ASN.1
   int INTEGER,
   str SEQUENCE OF SEQUENCE {
     type OCTET STRING,
     value INTEGER
-  }</PRE>
-<PRE>
-  # Perl
+  }
+</PRE>
+<P>
+<PRE>  # Perl
   { int =&gt; 5, str =&gt; [
     { type =&gt; &quot;abc&quot;, value =&gt; 4 },
     { type =&gt; &quot;def&quot;, value =&gt; -1 },
-  ]}</PRE>
-<P>
-<H2><A NAME="exceptions">Exceptions</A></H2>
-<P>There are some exceptions where Convert::ASN1 does not require an element to be named.
-These are SEQUENCE {...}, SET {...} and CHOICE. In each case if the element is not
-given a name then the elements inside the {...} will share the same namespace as
-the elements outside of the {...}.</P>
+  ]}
+</PRE>
 <P>
 <HR>
-<H1><A NAME="todo">TODO</A></H1>
+<H2><A NAME="Exceptions">Exceptions</A></H2>
+<P>
+There are some exceptions where Convert::ASN1 does not require an element
+to be named. These are SEQUENCE {...}, SET {...} and CHOICE. In each case
+if the element is not given a name then the elements inside the {...} will
+share the same namespace as the elements outside of the {...}.
+
+<P>
+<HR>
+<H1><A NAME="TODO">TODO</A></H1>
 <UL>
 <LI>
+<P>
 Decoding of a SET.
-<P></P>
+
 <LI>
+<P>
 Indefinite length encoding
-<P></P>
+
 <LI>
+<P>
 XS implementation.
-<P></P>
+
 <LI>
+<P>
 More documentation.
-<P></P>
+
 <LI>
+<P>
 More tests.
-<P></P></UL>
+
+</UL>
 <P>
 <HR>
-<H1><A NAME="author">AUTHOR</A></H1>
-<P>Graham Barr &lt;<A HREF="mailto:gbarr@pobox.xom">gbarr@pobox.xom</A>&gt;</P>
+<H1><A NAME="AUTHOR">AUTHOR</A></H1>
+<P>
+Graham Barr &lt;<A HREF="mailto:gbarr@pobox.xom">gbarr@pobox.xom</A>&gt;
+
 <P>
 <HR>
-<H1><A NAME="copyright">COPYRIGHT</A></H1>
-<P>Copyright (c) 2000 Graham Barr &lt;<A HREF="mailto:gbarr@pobox.com">gbarr@pobox.com</A>&gt;. All rights reserved.
-This program is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself.</P>
+<H1><A NAME="COPYRIGHT">COPYRIGHT</A></H1>
+<P>
+Copyright (c) 2000 Graham Barr &lt;<A
+HREF="mailto:gbarr@pobox.com">gbarr@pobox.com</A>&gt; All rights reserved.
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
 
 </BODY>
 
