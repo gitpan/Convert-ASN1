@@ -1,7 +1,7 @@
 
 package Convert::ASN1;
 
-# $Id: //depot/asn/lib/Convert/ASN1/Debug.pm#2 $
+# $Id: //depot/asn/lib/Convert/ASN1/Debug.pm#3 $
 
 ##
 ## just for debug :-)
@@ -47,12 +47,12 @@ my %type = (
       11	SET
       02	INTEGER
       03	BIT STRING
-      C0	PRIVATE [%d]
+      C0	[PRIVATE %d]
       04	STRING
-      40	APPLICATION [%d]
+      40	[APPLICATION %d]
       05	NULL
       06	OBJECT ID
-      80	CONTEXT [%d]
+      80	[CONTEXT %d]
     )
   )
 );
@@ -91,7 +91,7 @@ sub asn_dump {
 
     my $label = $type{sprintf("%02X",$tag & ~0x20)}
 		|| $type{sprintf("%02X",$tag & 0xC0)}
-		|| "UNIVERSAL [%d]";
+		|| "[UNIVERSAL %d]";
     printf $label, $tag & ~0xE0;
 
     if ($tag & ASN_CONSTRUCTOR) {
@@ -110,13 +110,13 @@ sub asn_dump {
 
     for ($label) { # switch
       /^(INTEGER|ENUM)/ && do {
-	Convert::ASN1::_dec_integer({},[],{},$tmp,substr($_[0],$pos,$len));
+	Convert::ASN1::_dec_integer({},[],{},$tmp,$_[0],$pos,$len);
 	printf " = %d\n",$tmp;
         last;
       };
 
       /^BOOLEAN/ && do {
-	Convert::ASN1::_dec_boolean({},[],{},$tmp,substr($_[0],$pos,$len));
+	Convert::ASN1::_dec_boolean({},[],{},$tmp,$_[0],$pos,$len);
 	printf " = %s\n",$tmp ? 'TRUE' : 'FALSE';
         last;
       };
@@ -133,7 +133,7 @@ sub asn_dump {
       };
 
       /^STRING/ && do {
-	Convert::ASN1::_dec_string({},[],{},$tmp,substr($_[0],$pos,$len));
+	Convert::ASN1::_dec_string({},[],{},$tmp,$_[0],$pos,$len);
 	if ($tmp =~ /[\x00-\x1f\x7f-\xff]/s) {
   	  _hexdump($tmp,$fmt . "        :   ".$indent, $pos);
 	}

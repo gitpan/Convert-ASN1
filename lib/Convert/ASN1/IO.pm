@@ -1,7 +1,7 @@
 
 package Convert::ASN1;
 
-# $Id: //depot/asn/lib/Convert/ASN1/IO.pm#7 $
+# $Id: //depot/asn/lib/Convert/ASN1/IO.pm#10 $
 
 use strict;
 use Socket;
@@ -30,7 +30,10 @@ sub asn_recv { # $socket, $buffer, $flags
 
     if ($depth) { # Are we searching of "\0\0"
 
-      next MORE unless 2+$pos <= length $buf;
+      unless (2+$pos <= length $buf) {
+	next MORE if $n == length $buf;
+	last MORE;
+      }
 
       if(substr($buf,$pos,2) eq "\0\0") {
 	unless (--$depth) {
@@ -42,7 +45,10 @@ sub asn_recv { # $socket, $buffer, $flags
 
     # If we can decode a tag and length we can detemine the length
     ($tb,$tmp) = asn_decode_tag(substr($buf,$pos));
-    next MORE unless $tb || $pos+$tb < length $buf;
+    unless ($tb || $pos+$tb < length $buf) {
+      next MORE if $n == length $buf;
+      last MORE;
+    }
 
     if (ord(substr($buf,$pos+$tb,1)) == 0x80) {
       # indefinite length, grrr!
@@ -77,9 +83,13 @@ sub asn_recv { # $socket, $buffer, $flags
 	return $peer;
       }
     }
+    elsif ($len == 0) {
+      $_[1] = '';
+      return $peer;
+    }
 
     if ($_[2] & MSG_PEEK) {
-      $_[1] =  substr($buf,$len);
+      $_[1] =  substr($buf,0,$len);
     }
     elsif (!defined($peer = recv($_[0],$_[1],$len,0))) {
       goto error;
@@ -145,13 +155,13 @@ sub asn_read { # $fh, $buffer, $offset
 
     # May be a multi-byte length
     if($lch & 0x80) {
-      my $len = $ch & 0x7f;
+      my $len = $lch & 0x7f;
       unless ($len) {
 	$depth++;
 	next;
       }
       while($len) {
-	my $n = sysread($_[0], $_[0], $len, $pos) or
+	my $n = sysread($_[0], $_[1], $len, $pos) or
 	  goto READ_ERR;
 	$len -= $n;
 	$pos += $n;

@@ -1,3 +1,36 @@
+Change 514 on 2000/05/11 by <gbarr@pobox.com> (Graham Barr)
+
+	Fix bug in encoding an integer where one to few bytes would be
+	encoded causing the sign to change on decode.
+
+Change 513 on 2000/05/09 by <gbarr@pobox.com> (Graham Barr)
+
+	Fix to asn_read for unit warning when first char of L is > 0x80
+
+Change 509 on 2000/05/04 by <gbarr@pobox.com> (Graham Barr)
+
+	Convert::ASN1::IO
+	- fix == instead of = typo
+
+Change 508 on 2000/05/04 by <gbarr@pobox.com> (Graham Barr)
+
+	Convert::ASN1::IO
+	- fix bug in asn_read where the FH was passed instead of
+	  the buffer to sysread
+	- fix bug in asn_recv where we has substr($buf,$len) instead
+	  of substr($buf,0,$len)
+	- make asn_recv break out of the loop if recv with MSG_PEEK
+	  gives less chars than what was asked for
+
+Change 497 on 2000/04/28 by <gbarr@pobox.com> (Graham Barr)
+
+	* Fix undef warnings in asn_dump (patch from Chris Ridd
+	* Change output of asn_dump for tags to [APPLICATION %d], etc
+
+Change 477 on 2000/04/03 by <gbarr@pobox.com> (Graham Barr)
+
+	Release 0.04
+
 Change 476 on 2000/03/31 by <gbarr@pobox.com> (Graham Barr)
 
 	More documentation additions
