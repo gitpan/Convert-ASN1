@@ -4,16 +4,24 @@
 
 package Convert::ASN1;
 
-# $Id: ASN1.pm,v 1.23 2002/08/20 00:00:57 gbarr Exp $
+# $Id: ASN1.pm,v 1.27 2003/05/12 17:45:57 gbarr Exp $
 
 use 5.004;
 use strict;
 use vars qw($VERSION @ISA @EXPORT_OK %EXPORT_TAGS @opParts @opName $AUTOLOAD);
 use Exporter;
 
+use constant CHECK_UTF8 => $] > 5.007;
+
 BEGIN {
+
+  if (CHECK_UTF8) {
+    require Encode;
+    require utf8;
+  }
+
   @ISA = qw(Exporter);
-  $VERSION = '0.16';
+  $VERSION = '0.17';
 
   %EXPORT_TAGS = (
     io    => [qw(asn_recv asn_send asn_read asn_write asn_get asn_ready)],
@@ -34,7 +42,7 @@ BEGIN {
   $EXPORT_TAGS{all} = \@EXPORT_OK;
 
   @opParts = qw(
-    cTAG cTYPE cVAR cLOOP cOPT cCHILD
+    cTAG cTYPE cVAR cLOOP cOPT cCHILD cDEFINE
   );
 
   @opName = qw(
@@ -101,7 +109,14 @@ sub new {
 sub configure {
   my $self = shift;
   my %opt = @_;
-  
+
+  $self->{options}{encoding} = uc($opt{encoding} || 'BER');
+
+  unless ($self->{options}{encoding} =~ /^[BD]ER$/) {
+    require Carp;
+    Carp::croak("Unsupported encoding format '$opt{encoding}'");
+  }
+
   for my $type (qw(encode decode)) {
     if (exists $opt{$type}) {
       while(my($what,$value) = each %{$opt{$type}}) {
@@ -160,6 +175,15 @@ sub prepare_file {
   my $ret = $self->prepare( \*ASN );
   close( ASN );
   $ret;
+}
+
+sub registeroid {
+  my $self = shift;
+  my $oid  = shift;
+  my $handler = shift;
+
+  $self->{options}{oidtable}{$oid}=$handler;
+  $self->{oidtable}{$oid}=$handler;
 }
 
 # In XS the will convert the tree between perl and C structs
@@ -224,6 +248,7 @@ sub decode {
     my (%stash, $result);
     my $script = $self->{script};
     my $stash = (1 == @$script && !$self->{script}[0][cVAR]) ? \$result : ($result=\%stash);
+
     _decode(
 	$self->{options},
 	$script,
@@ -233,6 +258,7 @@ sub decode {
 	undef,
 	[],
 	$_[0]);
+
     $result;
   };
   if ($@) {

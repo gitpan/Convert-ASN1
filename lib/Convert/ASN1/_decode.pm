@@ -4,11 +4,13 @@
 
 package Convert::ASN1;
 
-# $Id: _decode.pm,v 1.15 2002/03/25 09:06:16 gbarr Exp $
+# $Id: _decode.pm,v 1.18 2003/05/07 09:26:36 gbarr Exp $
 
 BEGIN {
-  local $SIG{__DIE__};
-  eval { require bytes } and 'bytes'->import
+  unless (CHECK_UTF8) {
+    local $SIG{__DIE__};
+    eval { require bytes } and 'bytes'->import
+  }
 }
 
 # These are the subs that do the decode, they are called with
@@ -122,8 +124,11 @@ sub _decode {
 
 	    $len += $npos-$pos;
 
+	    $handler=($optn->{oidtable} && $op->[cDEFINE]) ?
+			$optn->{oidtable}{$stash->{$op->[cDEFINE]}} : undef;
+
 	    ($seqof ? $seqof->[$idx++] : ref($stash) eq 'SCALAR' ? $$stash : $stash->{$var})
-	      = substr($buf,$pos,$len);
+	      = $handler ? $handler->decode(substr($buf,$pos,$len)) : substr($buf,$pos,$len);
 
 	    $pos += $len + $indef;
 
@@ -289,7 +294,7 @@ sub _dec_object_id {
 
   my @data = unpack("w*",substr($_[4],$_[5],$_[6]));
   splice(@data,0,1,int($data[0]/40),$data[0] % 40)
-    if $_[1]->[cTYPE] == opOBJID and $data[0];
+    if $_[1]->[cTYPE] == opOBJID and @data > 1;
   $_[3] = join(".", @data);
   1;
 }
@@ -536,12 +541,20 @@ sub _dec_utf8 {
 # $optn, $op, $stash, $var, $buf, $pos, $len
 
   BEGIN {
-    local $SIG{__DIE__};
-    eval { require bytes } and 'bytes'->unimport;
-    eval { require utf8  } and 'utf8'->import;
+    unless (CHECK_UTF8) {
+      local $SIG{__DIE__};
+      eval { require bytes } and 'bytes'->unimport;
+      eval { require utf8  } and 'utf8'->import;
+    }
   }
 
-  $_[3] = (substr($_[4],$_[5],$_[6]) =~ /(.*)/s)[0];
+  if (CHECK_UTF8) {
+    $_[3] = Encode::decode('utf8', substr($_[4],$_[5],$_[6]));
+  }
+  else {
+    $_[3] = (substr($_[4],$_[5],$_[6]) =~ /(.*)/s)[0];
+  }
+
   1;
 }
 

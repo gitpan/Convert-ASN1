@@ -16,6 +16,8 @@
 %token ENUM 16
 %token COMPONENTS 17
 %token POSTRBRACE 18
+%token DEFINED 19
+%token BY 20
 
 %{
 # Copyright (c) 2000-2002 Graham Barr <gbarr@pobox.com>. All rights reserved.
@@ -24,7 +26,7 @@
 
 package Convert::ASN1::parser;
 
-;# $Id: parser.y,v 1.8 2002/08/19 23:51:37 gbarr Exp $
+;# $Id: parser.y,v 1.11 2003/05/07 15:13:27 gbarr Exp $
 
 use strict;
 use Convert::ASN1 qw(:all);
@@ -131,10 +133,10 @@ seqset	: SEQUENCE
 	| SET
 	;
 
-selem	: seqset OF class plicit sselem
+selem	: seqset OF class plicit sselem optional
 		{
 		  $5->[cTAG] = $3;
-		  @{$$ = []}[cTYPE,cCHILD,cLOOP] = ($1, [$5], 1);
+		  @{$$ = []}[cTYPE,cCHILD,cLOOP,cOPT] = ($1, [$5], 1, $6);
 		  $$ = explicit($$) if $4;
 		}
 	;
@@ -164,17 +166,21 @@ eelem   : ENUM LBRACE elist RBRACE
 		}
 	;
 
-oielem	: WORD
-	| SEQUENCE
-	| SET
-	| ANY
-	| ENUM
+oielem	: WORD					{ @{$$ = []}[cTYPE] = $1; }
+	| SEQUENCE				{ @{$$ = []}[cTYPE] = $1; }
+	| SET					{ @{$$ = []}[cTYPE] = $1; }
+	| ANY defined
+		{
+		  @{$$ = []}[cTYPE,cCHILD,cDEFINE] = ('ANY',undef,$2);
+		}
+	| ENUM					{ @{$$ = []}[cTYPE] = $1; }
 	;
 
-oelem	: oielem
-		{
-		  @{$$ = []}[cTYPE] = ($1);
-		}
+defined :			{ $$=undef; }
+	| DEFINED BY WORD	{ $$=$3; }
+	;	
+
+oelem	: oielem 
 	;
 
 nlist	: nlist1		{ $$ = $1; }
@@ -287,6 +293,8 @@ my %reserved = (
   '}'		=> $RBRACE,
   ','		=> $COMMA,
   '::='         => $ASSIGN,
+  'DEFINED'     => $DEFINED,
+  'BY'		=> $BY
 );
 
 my $reserved = join("|", reverse sort grep { /\w/ } keys %reserved);
@@ -364,6 +372,17 @@ sub compile_one {
         ;# Here we need to flatten CHOICEs and check that SET and CHOICE
         ;# do not contain duplicate tags
         ;#}
+	if ($op->[cTYPE] == opSET) {
+	  ;# In case we do CER encoding we order the SET elements by thier tags
+	  my @tags = map { 
+	    length($_->[cTAG])
+		? $_->[cTAG]
+		: $_->[cTYPE] == opCHOICE
+			? (sort map { $_->[cTAG] } $_->[cCHILD])[0]
+			: ''
+	  } @{$op->[cCHILD]};
+	  @{$op->[cCHILD]} = @{$op->[cCHILD]}[sort { $tags[$a] cmp $tags[$b] } 0..$#tags];
+	}
       }
       else {
 	;# A SET of one element can be treated the same as a SEQUENCE
