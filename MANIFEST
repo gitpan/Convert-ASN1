@@ -5,6 +5,7 @@ OldChanges
 README
 examples/ldap
 examples/ldap-search
+examples/x509decode
 lib/Convert/ASN1.pm
 lib/Convert/ASN1.pod
 lib/Convert/ASN1/Debug.pm
@@ -24,4 +25,6 @@ t/06bigint.t
 t/07io.t
 t/08set.t
 t/09contr.t
+t/10choice.t
+t/11indef.t
 t/funcs.pl

@@ -24,7 +24,7 @@
 
 package Convert::ASN1::parser;
 
-;# $Id: parser.y,v 1.6 2002/01/22 11:24:28 gbarr Exp $
+;# $Id: parser.y,v 1.8 2002/08/19 23:51:37 gbarr Exp $
 
 use strict;
 use Convert::ASN1 qw(:all);
@@ -354,7 +354,10 @@ sub compile_one {
       compile_one($tree, $op->[cCHILD], defined($op->[cVAR]) ? $name . "." . $op->[cVAR] : $name);
 
       ;# If a CHOICE is given a tag, then it must be EXPLICIT
-      $op = explicit($op) if $op->[cTYPE] == opCHOICE && defined($op->[cTAG]) && length($op->[cTAG]);
+      if ($op->[cTYPE] == opCHOICE && defined($op->[cTAG]) && length($op->[cTAG])) {
+	$op = bless explicit($op);
+	$op->[cTYPE] = opSEQUENCE;
+      }
 
       if ( @{$op->[cCHILD]} > 1) {
         ;#if ($op->[cTYPE] != opSEQUENCE) {
@@ -493,7 +496,7 @@ sub yylex {
 	    RELATIVE-OID
 	  )\b
 	|
-	  (\w+)
+	  (\w+(?:-\w+)*)
 	|
 	    \[\s*
 	  (

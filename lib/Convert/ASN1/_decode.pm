@@ -4,7 +4,7 @@
 
 package Convert::ASN1;
 
-# $Id: _decode.pm,v 1.12 2002/01/22 11:24:28 gbarr Exp $
+# $Id: _decode.pm,v 1.15 2002/03/25 09:06:16 gbarr Exp $
 
 BEGIN {
   local $SIG{__DIE__};
@@ -67,7 +67,7 @@ sub _decode {
 	      # We send 1 if there is not var as if there is the decode
 	      # should be getting undef. So if it does not get undef
 	      # it knows it has no variable
-	      ($seqof ? $seqof->[$idx++] : defined($var) ? $stash->{$var} : 1),
+	      ($seqof ? $seqof->[$idx++] : defined($var) ? $stash->{$var} : ref($stash) eq 'SCALAR' ? $$stash : 1),
 	      $buf,$npos,$len, $indef ? $larr : []
 	    );
 
@@ -91,7 +91,7 @@ sub _decode {
 	      $buf,
 	    );
 
-	    ($seqof ? $seqof->[$idx++] : defined($var) ? $stash->{$var} : undef)
+	    ($seqof ? $seqof->[$idx++] : defined($var) ? $stash->{$var} : ref($stash) eq 'SCALAR' ? $$stash : undef)
 		= &{$ctr}(@ctrlist);
 	    $pos = $npos+$len+$indef;
 
@@ -122,7 +122,7 @@ sub _decode {
 
 	    $len += $npos-$pos;
 
-	    ($seqof ? $seqof->[$idx++] : $stash->{$var})
+	    ($seqof ? $seqof->[$idx++] : ref($stash) eq 'SCALAR' ? $$stash : $stash->{$var})
 	      = substr($buf,$pos,$len);
 
 	    $pos += $len + $indef;
@@ -145,7 +145,9 @@ sub _decode {
 		my $nstash = $seqof
 			? ($seqof->[$idx++]={})
 			: defined($var)
-				? ($stash->{$var}={}) : $stash;
+				? ($stash->{$var}={})
+				: ref($stash) eq 'SCALAR'
+					? ($$stash={}) : $stash;
 
 		&{$decode[$cop->[cTYPE]]}(
 		  $optn,
@@ -161,13 +163,45 @@ sub _decode {
 		next OP;
 	      }
 
+	      unless (length $cop->[cTAG]) {
+		eval {
+		  _decode(
+		    $optn,
+		    [$cop],
+		    (\my %tmp_stash),
+		    $pos,
+		    $npos+$len+$indef,
+		    undef,
+		    $indef ? $larr : [],
+		    $buf,
+		  );
+
+		  my $nstash = $seqof
+			  ? ($seqof->[$idx++]={})
+			  : defined($var)
+				  ? ($stash->{$var}={})
+				  : ref($stash) eq 'SCALAR'
+					  ? ($$stash={}) : $stash;
+
+		  @{$nstash}{keys %tmp_stash} = values %tmp_stash;
+
+		} or next;
+
+		$pos = $npos+$len+$indef;
+
+		redo CHOICELOOP if $seqof && $pos < $end;
+		next OP;
+	      }
+
 	      if ($tag eq ($cop->[cTAG] | chr(ASN_CONSTRUCTOR))
 		  and my $ctr = $ctr[$cop->[cTYPE]]) 
 	      {
 		my $nstash = $seqof
 			? ($seqof->[$idx++]={})
 			: defined($var)
-				? ($stash->{$var}={}) : $stash;
+				? ($stash->{$var}={})
+				: ref($stash) eq 'SCALAR'
+					? ($$stash={}) : $stash;
 
 		_decode(
 		  $optn,
@@ -514,6 +548,7 @@ sub _dec_utf8 {
 
 sub _decode_tl {
   my($pos,$end,$larr) = @_[1,2,3];
+
   my $indef = 0;
 
   my $tag = substr($_[0], $pos++, 1);
@@ -557,16 +592,17 @@ sub _decode_tl {
 
 sub _scan_indef {
   my($pos,$end,$larr) = @_[1,2,3];
-  @$larr = ();
-  my @depth = ( $pos );
+  @$larr = ( $pos );
+  my @depth = ( \$larr->[0] );
 
   while(@depth) {
     return if $pos+2 > $end;
 
     if (substr($_[0],$pos,2) eq "\0\0") {
       my $end = $pos;
-      my $start = shift @depth;
-      unshift @$larr, $end-$start;
+      my $stref = shift @depth;
+      # replace pos with length = end - pos
+      $$stref = $end - $$stref;
       $pos += 2;
       next;
     }
@@ -575,7 +611,6 @@ sub _scan_indef {
 
     if((ord($tag) & 0x1f) == 0x1f) {
       my $b;
-      my $n=1;
       do {
 	$tag .= substr($_[0],$pos++,1);
 	$b = ord substr($tag,-1);
@@ -592,7 +627,9 @@ sub _scan_indef {
 	$pos += $len + unpack("N", "\0" x (4 - $len) . substr($_[0],$pos,$len));
       }
       else {
-        unshift @depth, $pos;
+        # reserve another list element
+        push @$larr, $pos; 
+        unshift @depth, \$larr->[-1];
       }
     }
     else {
