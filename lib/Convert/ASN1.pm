@@ -1,7 +1,7 @@
 
 package Convert::ASN1;
 
-# $Id: ASN1.pm,v 1.13 2001/08/26 07:12:59 gbarr Exp $
+# $Id: ASN1.pm,v 1.15 2001/09/10 18:03:47 gbarr Exp $
 
 use 5.004;
 use strict;
@@ -10,7 +10,7 @@ use Exporter;
 
 BEGIN {
   @ISA = qw(Exporter);
-  $VERSION = '0.13';
+  $VERSION = '0.14';
 
   %EXPORT_TAGS = (
     io    => [qw(asn_recv asn_send asn_read asn_write asn_get asn_ready)],
@@ -24,7 +24,7 @@ BEGIN {
 		 ASN_UNIVERSAL   ASN_APPLICATION  ASN_CONTEXT      ASN_PRIVATE
 		 ASN_PRIMITIVE   ASN_CONSTRUCTOR  ASN_LONG_LEN     ASN_EXTENSION_ID ASN_BIT)],
 
-    tag   => [qw(asn_tag asn_decode_tag asn_encode_tag asn_decode_length asn_encode_length)]
+    tag   => [qw(asn_tag asn_decode_tag2 asn_decode_tag asn_encode_tag asn_decode_length asn_encode_length)]
   );
 
   @EXPORT_OK = map { @$_ } values %EXPORT_TAGS;
@@ -47,9 +47,6 @@ BEGIN {
       *{__PACKAGE__ . '::' . $name} = sub () { $j }
     }
   }
-
-  # Workaround for a bug in perl-5.6.0
-  $1 || $2 || $3 || $4 || $5 || $6 || $7 || $8 || 0;
 }
 
 sub _internal_syms {
@@ -241,6 +238,26 @@ sub asn_decode_tag {
 }
 
 
+sub asn_decode_tag2 {
+  return unless length $_[0];
+
+  my $tag = ord $_[0];
+  my $num = $tag & 0x1f;
+  my $len = 1;
+
+  if($num == 0x1f) {
+    $num = 0;
+    my $b;
+    do {
+      return if $len >= length $_[0];
+      $b = ord substr($_[0],$len++,1);
+      $num = ($num << 7) + ($b & 0x7f);
+    } while($b & 0x80);
+  }
+  ($len, $tag, $num);
+}
+
+
 ##
 ## Utilities
 ##
@@ -261,7 +278,7 @@ sub num_length {
 
 sub i2osp {
     my($num, $biclass) = @_;
-    eval "require $biclass";
+    eval "use $biclass";
     $num = $biclass->new($num);
     my $neg = $num < 0
       and $num = abs($num+1);
