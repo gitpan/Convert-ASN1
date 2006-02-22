@@ -1,5 +1,5 @@
 name: Convert-ASN1
-version: 0.19
+version: 0.20
 abstract: Convert between perl data structures and ASN.1 encoded packets
 author: Graham Barr <gbarr@cpan.org>
 license: perl
@@ -9,4 +9,4 @@ requires:
 no_index:
   directory:
     - inc
-generated_by: Module::Install version 0.33
+generated_by: Module::Install version 0.37

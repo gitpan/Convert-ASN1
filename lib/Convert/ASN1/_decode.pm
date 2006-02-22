@@ -1,16 +1,12 @@
-# Copyright (c) 2000-2002 Graham Barr <gbarr@pobox.com>. All rights reserved.
+# Copyright (c) 2000-2005 Graham Barr <gbarr@pobox.com>. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 
 package Convert::ASN1;
 
-# $Id: _decode.pm,v 1.18 2003/05/07 09:26:36 gbarr Exp $
-
 BEGIN {
-  unless (CHECK_UTF8) {
-    local $SIG{__DIE__};
-    eval { require bytes } and 'bytes'->import
-  }
+  local $SIG{__DIE__};
+  eval { require bytes and 'bytes'->import };
 }
 
 # These are the subs that do the decode, they are called with
@@ -508,7 +504,7 @@ sub _dec_time {
 
   my $mode = $_dec_time_opt{$_[0]->{'decode_time'} || ''} || 0;
 
-  if ($mode == 2) {
+  if ($mode == 2 or $_[6] == 0) {
     $_[3] = substr($_[4],$_[5],$_[6]);
     return;
   }

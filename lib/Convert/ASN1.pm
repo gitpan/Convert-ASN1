@@ -14,6 +14,8 @@ use Exporter;
 use constant CHECK_UTF8 => $] > 5.007;
 
 BEGIN {
+  local $SIG{__DIE__};
+  eval { require bytes and 'bytes'->import };
 
   if (CHECK_UTF8) {
     require Encode;
@@ -21,7 +23,7 @@ BEGIN {
   }
 
   @ISA = qw(Exporter);
-  $VERSION = "0.19";
+  $VERSION = "0.20";
 
   %EXPORT_TAGS = (
     io    => [qw(asn_recv asn_send asn_read asn_write asn_get asn_ready)],
