@@ -67,7 +67,7 @@ sub _decode {
 	      # should be getting undef. So if it does not get undef
 	      # it knows it has no variable
 	      ($seqof ? $seqof->[$idx++] : defined($var) ? $stash->{$var} : ref($stash) eq 'SCALAR' ? $$stash : 1),
-	      $buf,$npos,$len, $indef ? $larr : []
+	      $buf,$npos,$len, $larr
 	    );
 
 	    $pos = $npos+$len+$indef;
@@ -86,7 +86,7 @@ sub _decode {
 	      $npos,
 	      $npos+$len,
 	      (\my @ctrlist),
-	      $indef ? $larr : [],
+	      $larr,
 	      $buf,
 	    );
 
@@ -100,7 +100,6 @@ sub _decode {
 	  }
 
 	  if ($seqof || defined $op->[cOPT]) {
-	    unshift @$larr, $len if $indef;
 	    next OP;
 	  }
 
@@ -121,8 +120,10 @@ sub _decode {
 
 	    $len += $npos-$pos;
 
-	    $handler=($optn->{oidtable} && $op->[cDEFINE]) ?
-			$optn->{oidtable}{$stash->{$op->[cDEFINE]}} : undef;
+             if ($op->[cDEFINE]) {
+                $handler = $optn->{oidtable} && $optn->{oidtable}{$stash->{$op->[cDEFINE]}};
+                $handler ||= $optn->{handlers}{$op->[cVAR]}{$stash->{$op->[cDEFINE]}};
+             }
 
 	    ($seqof ? $seqof->[$idx++] : ref($stash) eq 'SCALAR' ? $$stash : $stash->{$var})
 	      = $handler ? $handler->decode(substr($buf,$pos,$len)) : substr($buf,$pos,$len);
@@ -155,8 +156,8 @@ sub _decode {
 		  $optn,
 		  $cop,
 		  $nstash,
-		  $nstash->{$cop->[cVAR]},
-		  $buf,$npos,$len,$indef ? $larr : []
+		  ($cop->[cVAR] ? $nstash->{$cop->[cVAR]} : undef),
+		  $buf,$npos,$len,$larr,
 		);
 
 		$pos = $npos+$len+$indef;
@@ -174,7 +175,7 @@ sub _decode {
 		    $pos,
 		    $npos+$len+$indef,
 		    undef,
-		    $indef ? $larr : [],
+		    $larr,
 		    $buf,
 		  );
 
@@ -212,7 +213,7 @@ sub _decode {
 		  $npos,
 		  $npos+$len,
 		  (\my @ctrlist),
-		  $indef ? $larr : [],
+		  $larr,
 		  $buf,
 		);
 
@@ -404,7 +405,7 @@ SET_OP:
 	    # should be getting undef. So if it does not get undef
 	    # it knows it has no variable
 	    (defined($var) ? $stash->{$var} : 1),
-	    $_[4],$npos,$len,$indef ? $larr : []
+	    $_[4],$npos,$len,$larr,
 	  );
 	  $done = $idx;
 	  last SET_OP;
@@ -419,7 +420,7 @@ SET_OP:
 	    $npos,
 	    $npos+$len,
 	    (\my @ctrlist),
-	    $indef ? $larr : [],
+	    $larr,
 	    $_[4],
 	  );
 
@@ -443,7 +444,7 @@ SET_OP:
 	      $cop,
 	      $nstash,
 	      $nstash->{$cop->[cVAR]},
-	      $_[4],$npos,$len,$indef ? $larr : []
+	      $_[4],$npos,$len,$larr,
 	    );
 	    $done = $idx;
 	    last SET_OP;
@@ -460,7 +461,7 @@ SET_OP:
 	      $npos,
 	      $npos+$len,
 	      (\my @ctrlist),
-	      $indef ? $larr : [],
+	      $larr,
 	      $_[4],
 	    );
 
@@ -584,11 +585,11 @@ sub _decode_tl {
       ($len,$pos) = (unpack("N", "\0" x (4 - $len) . substr($_[0],$pos,$len)), $pos+$len);
     }
     else {
-      unless (@$larr) {
+      unless (exists $larr->{$pos}) {
         _scan_indef($_[0],$pos,$end,$larr) or return;
       }
       $indef = 2;
-      $len = shift @$larr;
+      $len = $larr->{$pos};
     }
   }
 
@@ -602,8 +603,7 @@ sub _decode_tl {
 
 sub _scan_indef {
   my($pos,$end,$larr) = @_[1,2,3];
-  @$larr = ( $pos );
-  my @depth = ( \$larr->[0] );
+  my @depth = ( $pos );
 
   while(@depth) {
     return if $pos+2 > $end;
@@ -612,7 +612,7 @@ sub _scan_indef {
       my $end = $pos;
       my $stref = shift @depth;
       # replace pos with length = end - pos
-      $$stref = $end - $$stref;
+      $larr->{$stref} = $end - $stref;
       $pos += 2;
       next;
     }
@@ -638,8 +638,7 @@ sub _scan_indef {
       }
       else {
         # reserve another list element
-        push @$larr, $pos; 
-        unshift @depth, \$larr->[-1];
+        unshift @depth, $pos;
       }
     }
     else {
