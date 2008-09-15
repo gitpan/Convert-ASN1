@@ -103,7 +103,7 @@ sub _decode {
 	    next OP;
 	  }
 
-	  die "decode error " . unpack("H*",$tag) ."<=>" . unpack("H*",$op->[cTAG]), " ",$pos," ",$op->[cTYPE]," ",$op->[cVAR];
+	  die "decode error " . unpack("H*",$tag) ."<=>" . unpack("H*",$op->[cTAG]), " ",$pos," ",$op->[cTYPE]," ",$op->[cVAR]||'';
         }
       }
       else { # opTag length is zero, so it must be an ANY or CHOICE
@@ -281,7 +281,7 @@ sub _dec_null {
 # 0      1    2       3     4     5     6
 # $optn, $op, $stash, $var, $buf, $pos, $len
 
-  $_[3] = 1;
+  $_[3] = exists($_[0]->{decode_null}) ? $_[0]->{decode_null} : 1;
   1;
 }
 
@@ -291,8 +291,17 @@ sub _dec_object_id {
 # $optn, $op, $stash, $var, $buf, $pos, $len
 
   my @data = unpack("w*",substr($_[4],$_[5],$_[6]));
-  splice(@data,0,1,int($data[0]/40),$data[0] % 40)
-    if $_[1]->[cTYPE] == opOBJID and @data > 1;
+  if ($_[1]->[cTYPE] == opOBJID and @data > 1) {
+    if ($data[0] < 40) {
+      splice(@data, 0, 1, 0, $data[0]);
+    }
+    elsif ($data[0] < 80) {
+      splice(@data, 0, 1, 1, $data[0] - 40);
+    }
+    else {
+      splice(@data, 0, 1, 2, $data[0] - 80);
+    }
+  }
   $_[3] = join(".", @data);
   1;
 }

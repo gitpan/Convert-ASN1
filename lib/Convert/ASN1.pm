@@ -23,7 +23,7 @@ BEGIN {
   }
 
   @ISA = qw(Exporter);
-  $VERSION = "0.21";
+  $VERSION = "0.22";
 
   %EXPORT_TAGS = (
     io    => [qw(asn_recv asn_send asn_read asn_write asn_get asn_ready)],
@@ -218,7 +218,7 @@ sub encode {
 
 
 # Encode tag value for encoding.
-# We assume that the tag has been correclty generated with asn_tag()
+# We assume that the tag has been correctly generated with asn_tag()
 
 sub asn_encode_tag {
   $_[0] >> 8
