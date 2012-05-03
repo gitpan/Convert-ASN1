@@ -1,3 +1,7 @@
+0.23 -- Thu May 03 16:32:46 CDT 2012
+ * Added support for EXTENSION MARKERS (...) (Niels Laukens)
+ * Switch to Dist::Zilla for building
+
 Convert::ASN1 0.21 -- Mon Sep 15 14:34:45 CDT 2008
 
 Bug Fixes

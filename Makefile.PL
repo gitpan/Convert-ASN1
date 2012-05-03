@@ -1,24 +1,52 @@
-# -*- perl -*-
 
-use inc::Module::Install;
+use strict;
+use warnings;
 
-perl_version    5.005;
 
-name         'Convert-ASN1';
-abstract     'Convert between perl data structures and ASN.1 encoded packets';
-author       'Graham Barr <gbarr@cpan.org>';
-version_from 'lib/Convert/ASN1.pm';
-license      'perl';
-sign         1;
 
-repository   'git://git.goingon.net/Convert-ASN1.git';
+use ExtUtils::MakeMaker 6.30;
 
-clean_files  qw(y.tab.pl);
 
-include_deps 'Test::More';
 
-check_nmake;      # check and download nmake.exe for Win32
+my %WriteMakefileArgs = (
+  "ABSTRACT" => "Convert between perl data structures and ASN.1 encoded packets",
+  "AUTHOR" => "Graham Barr <gbarr\@cpan.org>",
+  "BUILD_REQUIRES" => {
+    "Math::BigInt" => "1.997",
+    "Test::More" => "0.90"
+  },
+  "CONFIGURE_REQUIRES" => {
+    "ExtUtils::MakeMaker" => "6.30"
+  },
+  "DISTNAME" => "Convert-ASN1",
+  "EXE_FILES" => [],
+  "LICENSE" => "perl",
+  "NAME" => "Convert::ASN1",
+  "PREREQ_PM" => {},
+  "VERSION" => "0.23",
+  "test" => {
+    "TESTS" => "t/*.t"
+  }
+);
 
-auto_install_now;
 
-WriteAll;
+unless ( eval { ExtUtils::MakeMaker->VERSION(6.56) } ) {
+  my $br = delete $WriteMakefileArgs{BUILD_REQUIRES};
+  my $pp = $WriteMakefileArgs{PREREQ_PM};
+  for my $mod ( keys %$br ) {
+    if ( exists $pp->{$mod} ) {
+      $pp->{$mod} = $br->{$mod} if $br->{$mod} > $pp->{$mod};
+    }
+    else {
+      $pp->{$mod} = $br->{$mod};
+    }
+  }
+}
+
+delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
+  unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
+
+WriteMakefile(%WriteMakefileArgs);
+
+
+
