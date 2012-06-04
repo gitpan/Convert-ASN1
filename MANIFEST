@@ -5,7 +5,7 @@ META.json
 META.yml
 Makefile.PL
 OldChanges
-README
+README.md
 SIGNATURE
 dist.ini
 examples/ldap
@@ -36,5 +36,8 @@ t/11indef.t
 t/12der.t
 t/13utf8.t
 t/14any.t
-t/15ext.t
+t/15extseq.t
+t/16extset.t
+t/17extchoice.t
+t/18tagdefault.t
 t/funcs.pl

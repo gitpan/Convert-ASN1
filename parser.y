@@ -53,6 +53,7 @@ my %base_type = (
   'RELATIVE-OID'    => [ asn_encode_tag(ASN_RELATIVE_OID),	opROID	  ],
 
   SEQUENCE	    => [ asn_encode_tag(ASN_SEQUENCE | ASN_CONSTRUCTOR), opSEQUENCE ],
+  EXPLICIT	    => [ asn_encode_tag(ASN_SEQUENCE | ASN_CONSTRUCTOR), opEXPLICIT ],
   SET               => [ asn_encode_tag(ASN_SET      | ASN_CONSTRUCTOR), opSET ],
 
   ObjectDescriptor  => [ asn_encode_tag(ASN_UNIVERSAL |  7), opSTRING ],
@@ -80,13 +81,20 @@ my %base_type = (
   EXTENSION_MARKER => [ '', opEXTENSIONS ],
 );
 
+my $tagdefault = 1; # 0:IMPLICIT , 1:EXPLICIT default
+
+# args: class,plicit
+sub need_explicit {
+  (defined($_[0]) && (defined($_[1])?$_[1]:$tagdefault));
+}
+
 # Given an OP, wrap it in a SEQUENCE
 
 sub explicit {
   my $op = shift;
   my @seq = @$op;
 
-  @seq[cTYPE,cCHILD,cVAR,cLOOP] = ('SEQUENCE',[$op],undef,undef);
+  @seq[cTYPE,cCHILD,cVAR,cLOOP] = ('EXPLICIT',[$op],undef,undef);
   @{$op}[cTAG,cOPT] = ();
 
   \@seq;
@@ -114,7 +122,7 @@ module  : WORD ASSIGN aitem
 aitem	: class plicit anyelem postrb
 		{
 		  $3->[cTAG] = $1;
-		  $$ = $2 ? explicit($3) : $3;
+		  $$ = need_explicit($1,$2) ? explicit($3) : $3;
 		}
 	| celem
 	;
@@ -139,7 +147,7 @@ selem	: seqset OF class plicit sselem optional
 		{
 		  $5->[cTAG] = $3;
 		  @{$$ = []}[cTYPE,cCHILD,cLOOP,cOPT] = ($1, [$5], 1, $6);
-		  $$ = explicit($$) if $4;
+		  $$ = explicit($$) if need_explicit($3,$4);
 		}
 	;
 
@@ -206,7 +214,11 @@ nlist1	: nitem
 nitem	: WORD class plicit anyelem
 		{
 		  @{$$=$4}[cVAR,cTAG] = ($1,$2);
-		  $$ = explicit($$) if $3;
+		  $$ = explicit($$) if need_explicit($2,$3);
+		}
+	| EXTENSION_MARKER
+		{
+		    @{$$=[]}[cTYPE] = 'EXTENSION_MARKER';
 		}
 	;
 
@@ -267,13 +279,13 @@ sitem	: WORD class plicit snitem
 		{
 		  @{$$=$4}[cVAR,cTAG] = ($1,$2);
 		  $$->[cOPT] = $1 if $$->[cOPT];
-		  $$ = explicit($$) if $3;
+		  $$ = explicit($$) if need_explicit($2,$3);
 		}
 	| celem
 	| class plicit onelem
 		{
 		  @{$$=$3}[cTAG] = ($1);
-		  $$ = explicit($$) if $2;
+		  $$ = explicit($$) if need_explicit($1,$2);
 		}
 	| EXTENSION_MARKER
 		{
@@ -348,6 +360,7 @@ my @stacked;
 
 sub parse {
   local(*asn) = \($_[0]);
+  $tagdefault = $_[1] eq 'EXPLICIT' ? 1 : 0;
   ($pos,$last_pos,@stacked) = ();
 
   eval {
@@ -384,11 +397,11 @@ sub compile_one {
       $op->[cTAG] = defined($op->[cTAG]) ? asn_encode_tag($op->[cTAG]): $ref->[0][cTAG];
     }
     $op->[cTAG] |= chr(ASN_CONSTRUCTOR)
-      if length $op->[cTAG] && ($op->[cTYPE] == opSET || $op->[cTYPE] == opSEQUENCE);
+      if length $op->[cTAG] && ($op->[cTYPE] == opSET || $op->[cTYPE] == opEXPLICIT || $op->[cTYPE] == opSEQUENCE);
 
     if ($op->[cCHILD]) {
       ;# If we have children we are one of
-      ;#  opSET opSEQUENCE opCHOICE
+      ;#  opSET opSEQUENCE opCHOICE opEXPLICIT
 
       compile_one($tree, $op->[cCHILD], defined($op->[cVAR]) ? $name . "." . $op->[cVAR] : $name);
 

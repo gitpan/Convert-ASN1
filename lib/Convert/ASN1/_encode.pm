@@ -4,7 +4,7 @@
 
 package Convert::ASN1;
 {
-  $Convert::ASN1::VERSION = '0.23';
+  $Convert::ASN1::VERSION = '0.24';
 }
 
 BEGIN {
@@ -29,6 +29,7 @@ my @encode = (
   \&_enc_object_id,
   \&_enc_real,
   \&_enc_sequence,
+  \&_enc_sequence, # EXPLICIT is the same encoding as sequence
   \&_enc_sequence, # SET is the same encoding as sequence
   \&_enc_time,
   \&_enc_time,
@@ -384,6 +385,7 @@ sub _enc_choice {
 
   my $stash = defined($_[3]) ? $_[3] : $_[2];
   for my $op (@{$_[1]->[cCHILD]}) {
+    next if $op->[cTYPE] == opEXTENSIONS;
     my $var = defined $op->[cVAR] ? $op->[cVAR] : $op->[cCHILD]->[0]->[cVAR];
 
     if (exists $stash->{$var}) {
