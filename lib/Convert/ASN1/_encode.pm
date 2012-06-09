@@ -4,8 +4,11 @@
 
 package Convert::ASN1;
 {
-  $Convert::ASN1::VERSION = '0.24';
+  $Convert::ASN1::VERSION = '0.25';
 }
+
+use strict;
+use warnings;
 
 BEGIN {
   unless (CHECK_UTF8) {
@@ -305,6 +308,7 @@ sub _enc_time {
     return;
   }
 
+  my $time;
   my @time;
   my $offset;
   my $isgen = $_[1]->[cTYPE] == opGTIME;

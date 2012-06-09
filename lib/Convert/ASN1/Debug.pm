@@ -4,7 +4,7 @@
 
 package Convert::ASN1;
 {
-  $Convert::ASN1::VERSION = '0.24';
+  $Convert::ASN1::VERSION = '0.25';
 }
 
 ##

@@ -4,8 +4,11 @@
 
 package Convert::ASN1;
 {
-  $Convert::ASN1::VERSION = '0.24';
+  $Convert::ASN1::VERSION = '0.25';
 }
+
+use strict;
+use warnings;
 
 BEGIN {
   local $SIG{__DIE__};
@@ -122,17 +125,18 @@ sub _decode {
 		die "decode error";
 	      };
 
-	    $len += $npos-$pos;
+	    $len += $npos - $pos + $indef;
 
-             if ($op->[cDEFINE]) {
-                $handler = $optn->{oidtable} && $optn->{oidtable}{$stash->{$op->[cDEFINE]}};
-                $handler ||= $optn->{handlers}{$op->[cVAR]}{$stash->{$op->[cDEFINE]}};
-             }
+            my $handler;
+            if ($op->[cDEFINE]) {
+              $handler = $optn->{oidtable} && $optn->{oidtable}{$stash->{$op->[cDEFINE]}};
+              $handler ||= $optn->{handlers}{$op->[cVAR]}{$stash->{$op->[cDEFINE]}};
+            }
 
 	    ($seqof ? $seqof->[$idx++] : ref($stash) eq 'SCALAR' ? $$stash : $stash->{$var})
 	      = $handler ? $handler->decode(substr($buf,$pos,$len)) : substr($buf,$pos,$len);
 
-	    $pos += $len + $indef;
+	    $pos += $len;
 
 	    redo ANYLOOP if $seqof && $pos < $end;
 	  }
@@ -385,6 +389,8 @@ sub _dec_explicit {
 # 0      1    2       3     4     5     6     7
 # $optn, $op, $stash, $var, $buf, $pos, $len, $larr
 
+  local $_[1][cCHILD][0][cVAR] = $_[1][cVAR];
+
   _decode(
     $_[0], #optn
     $_[1]->[cCHILD],   #ops
@@ -484,6 +490,7 @@ SET_OP:
 	$any = $idx;
       }
       elsif ($op->[cTYPE] == opCHOICE) {
+	my $var = $op->[cVAR];
 	foreach my $cop (@{$op->[cCHILD]}) {
 	  if ($tag eq $cop->[cTAG]) {
 	    my $nstash = defined($var) ? ($stash->{$var}={}) : $stash;

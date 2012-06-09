@@ -32,6 +32,7 @@ t/07io.t
 t/08set.t
 t/09contr.t
 t/10choice.t
+t/11explicit.t
 t/11indef.t
 t/12der.t
 t/13utf8.t
