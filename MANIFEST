@@ -41,4 +41,14 @@ t/15extseq.t
 t/16extset.t
 t/17extchoice.t
 t/18tagdefault.t
+t/aj.cer
+t/aj2.cer
+t/allianz_root.cer
+t/dsacert.der
 t/funcs.pl
+t/new_root_ca.cer
+t/pgpextension.der
+t/subca_2.cer
+t/telesec_799972029.crt
+t/verisign.der
+t/x509.t

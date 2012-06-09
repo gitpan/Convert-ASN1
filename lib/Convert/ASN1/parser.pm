@@ -6,7 +6,7 @@
 
 package Convert::ASN1::parser;
 {
-  $Convert::ASN1::parser::VERSION = '0.25';
+  $Convert::ASN1::parser::VERSION = '0.26';
 }
 
 use strict;

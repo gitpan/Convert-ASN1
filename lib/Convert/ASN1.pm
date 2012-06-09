@@ -4,7 +4,7 @@
 
 package Convert::ASN1;
 {
-  $Convert::ASN1::VERSION = '0.25';
+  $Convert::ASN1::VERSION = '0.26';
 }
 
 use 5.004;
@@ -277,7 +277,7 @@ sub decode {
         $result = $stash = \%stash;
         last;
       }
-      last if $child->[cTYPE] == opCHOICE;
+      last if $child->[cTYPE] == opCHOICE or $child->[cLOOP];
       $script = $child->[cCHILD];
     }
 
