@@ -41,6 +41,7 @@ t/15extseq.t
 t/16extset.t
 t/17extchoice.t
 t/18tagdefault.t
+t/99misc.t
 t/aj.cer
 t/aj2.cer
 t/allianz_root.cer
